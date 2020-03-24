@@ -4,7 +4,6 @@ import random
 
 class DigiMon(pygame.sprite.Sprite):
     run_spd_factor = 1.5
-    evolve_exp_required = [10, 30, 60]
 
     def __init__(self, digimon_name, image_name, location_xy, hp, atk, spd_limit, home):
         self.digimon_name = digimon_name
@@ -21,6 +20,7 @@ class DigiMon(pygame.sprite.Sprite):
         self.atk = atk
         self.exp = 0
         self.finish_evolves = [False, False, False]
+        self.current_level = -1
         print('home is ', home)
         self.home_width_start, self.home_length_start, self.home_width_end, self.home_length_end = home
 
@@ -64,16 +64,20 @@ class DigiMon(pygame.sprite.Sprite):
         self.exp += 1
 
     def evolve(self):
+        if self.digimon_name == 'marineangemon':
+            return
         for evolve_level in range(len(self.finish_evolves)):
             if not self.finish_evolves[evolve_level]:
-                if self.exp >= DigiMon.evolve_exp_required[evolve_level]:
+                if self.exp >= DigimonFactory.evolve_exp_required[evolve_level]:
                     self.finish_evolves[evolve_level] = True
+                    self.current_level = evolve_level
                     print(self.exp)
                     upper_name = DigimonFactory.evolve_map[self.digimon_name]
                     upper_image_name = upper_name + '.png'
                     x_reserved = self.rect.left
                     y_reserved = self.rect.top
                     self.digimon_name = upper_name
+                    self.hp = DigimonFactory.limits[self.digimon_name][0]
                     upper_image_name = 'pic/' + upper_image_name
                     self.image = pygame.image.load(upper_image_name)
                     self.rect = self.image.get_rect()
@@ -82,10 +86,11 @@ class DigiMon(pygame.sprite.Sprite):
                     break
 
     def restore(self):
-        restore_hp = 200
+        restore_hp = 50
         if self.hp + restore_hp > DigimonFactory.limits[self.digimon_name][0]:
             self.hp = DigimonFactory.limits[self.digimon_name][0]
         else:
+            print('restore hp')
             self.hp += restore_hp
 
 
@@ -108,24 +113,25 @@ class DigimonFactory(object):
         'garudamon': 'hououmon',
         'rizegreymon': 'wargreymon'
     }
+    evolve_exp_required = [20, 50, 90, 10000]
 
     limits = {
-        'koromon': [200, 4],
-        'tanemon': [300, 2],
-        'tsunomon': [240, 3],
-        'yokomon': [280, 2],
-        'agumon': [400, 80],
-        'palmon': [600, 40],
-        'biyoumon': [540, 50],
-        'gabumon': [480, 60],
-        'togomon': [900, 60],
-        'garurumon': [720, 90],
-        'birdramon': [840, 75],
-        'geogreymon': [600, 120],
-        'lillymon': [1200, 80],
-        'weregarurumon': [960, 120],
-        'garudamon': [1080, 100],
-        'rizegreymon': [800, 160],
+        'koromon': [200, 20],
+        'tanemon': [300, 10],
+        'tsunomon': [240, 15],
+        'yokomon': [280, 10],
+        'agumon': [400, 40],
+        'palmon': [600, 20],
+        'biyoumon': [540, 25],
+        'gabumon': [480, 30],
+        'togomon': [900, 30],
+        'garurumon': [720, 45],
+        'birdramon': [840, 35],
+        'geogreymon': [600, 60],
+        'lillymon': [1200, 40],
+        'weregarurumon': [960, 60],
+        'garudamon': [1080, 50],
+        'rizegreymon': [800, 80],
         'marineangemon': [1000, 1]
     }
 
@@ -168,39 +174,26 @@ class DigimonGroup(object):
     def __init__(self, kind_name):
         self.group_size = 0
         self.group_name = kind_name
-        self.group = pygame.sprite.Group()
         self.digimons = []
 
     def add_digimon(self, digimon):
         self.digimons.append(digimon)
-        self.group.add(digimon)
         self.group_size += 1
-
-    def get_group(self):
-        return self.group
 
     def get_group_name(self):
         return self.group_name
-
-    def add_group_element_tmp(self, digimon):
-        self.group.add(digimon)
-
-    def remove_element_tmp(self, digimon):
-        self.group.remove(digimon)
 
     def group_walk(self, groups):
         for group in groups:
             if group.group_name == self.group_name:
                 for digimon in self.digimons:
-                    is_collide = self.collide_inner_group(digimon)
-                    if is_collide:
-                        digimon.restore()
+                    self.check_collide_inner(digimon)
                     digimon.walk()
             else:
                 for digimon in self.digimons:
-                    self.collide_inter_groups(digimon, group)
+                    self.check_collide_inter(digimon, group)
                     digimon.walk()
-
+                    digimon.evolve()
 
     def group_blit(self, screen):
         for digimon in self.digimons:
@@ -208,46 +201,78 @@ class DigimonGroup(object):
             y = digimon.get_border().top
 
             hp_percent = digimon.hp / DigimonFactory.limits[digimon.digimon_name][0]
-            print('hp_percent', hp_percent)
-            pygame.draw.rect(screen, (255, 0, 0), (x, y - 6, 32, 5))
-            pygame.draw.rect(screen, (100, 128, 0), (x, y - 6, 32 * hp_percent, 5))
+            pygame.draw.rect(screen, (69, 137, 148), (x, y - 6, 32, 3), 1)
+            pygame.draw.rect(screen, (255, 0, 0), (x, y - 6, 32 * hp_percent, 3))
+
+            exp_percent = digimon.exp / DigimonFactory.evolve_exp_required[digimon.current_level + 1]
+            if digimon.digimon_name == 'marineangemon':
+                exp_percent = digimon.exp / DigimonFactory.evolve_exp_required[3]
+            pygame.draw.rect(screen, (69, 137, 148), (x, y - 10, 32, 3), 1)
+            pygame.draw.rect(screen, (229, 131, 8), (x, y - 10, 32 * exp_percent, 3))
+
             screen.blit(digimon.get_image(), digimon.get_border())
 
+    def check_collide_inter(self, digimon, group):
+        distance = 20
+        for digimon_g in group.digimons:
+            x = (abs(digimon_g.rect.left - digimon.rect.right) <= distance) or \
+                (abs(digimon_g.rect.right - digimon.rect.left) <= distance)
+            y = (abs(digimon_g.rect.top - digimon.rect.bottom) <= distance) or \
+                (abs(digimon_g.rect.bottom - digimon.rect.top) <= distance)
+            if x and y:
+                print('digimon is ', digimon.digimon_name, ' left is ',
+                      (digimon.rect.left, digimon.rect.right, digimon.rect.top,
+                       digimon.rect.bottom))
+                print('digimon is ', digimon_g.digimon_name, ' left is ',
+                      (digimon_g.rect.left, digimon_g.rect.right, digimon_g.rect.top,
+                       digimon_g.rect.bottom))
+                digimon.increase_exp()
+                digimon_g.increase_exp()
+                attack_value = DigimonFactory.limits[digimon_g.digimon_name][1]
+                digimon.hp -= attack_value
+                attack_value = DigimonFactory.limits[digimon.digimon_name][1]
+                digimon_g.hp -= attack_value
+                choice = random.randint(0, 1)
+                if not choice:
+                    digimon.walk_spd[0] = - digimon.walk_spd[0]
+                    digimon_g.walk_spd[0] = - digimon_g.walk_spd[0]
+                else:
+                    digimon_g.walk_spd[1] = - digimon_g.walk_spd[1]
+                return
 
-    def collide_inter_groups(self, digimon, group):
-        group.add_group_element_tmp(digimon)
-        is_collide = False
-        if pygame.sprite.spritecollide(digimon, group.get_group(), False):
-            print(self.group_name, ' collide with ', group.group_name)
-            is_collide = True
-            digimon.increase_exp()
-            attack_value = DigimonFactory.limits[group.group_name][1]
-            digimon.hp -= attack_value
+
+    def check_collide_inner(self, digimon):
+        '''
+        print('digimon is ', digimon.digimon_name, ' left is ', (digimon.rect.left, digimon.rect.right, digimon.rect.top,
+                                                    digimon.rect.bottom))
+        '''
+        distance = 20
+        for digimon_g in self.digimons:
+            if not (digimon_g is digimon.digimon_name):
+                x = (abs(digimon_g.rect.left - digimon.rect.right) <= distance) or \
+                    (abs(digimon_g.rect.right - digimon.rect.left) <= distance)
+                y = (abs(digimon_g.rect.top - digimon.rect.bottom) <= distance) or \
+                    (abs(digimon_g.rect.bottom - digimon.rect.top) <= distance)
+                if x and y:
+                    digimon.restore()
+                    print('restore')
+                    choice = random.randint(0, 1)
+                    if not choice:
+                        digimon.walk_spd[0] = - digimon.walk_spd[0]
+                        digimon_g.walk_spd[0] = - digimon_g.walk_spd[0]
+                    else:
+                        digimon.walk_spd[1] = - digimon.walk_spd[1]
+                        digimon_g.walk_spd[1] = - digimon_g.walk_spd[1]
+                    return True
+        return False
+
+    def remove_dead(self):
+        for digimon in self.digimons:
             if digimon.hp <= 0:
-                digimon.hp = 0
-            choice = random.randint(0, 1)
-            if not choice:
-                digimon.walk_spd[0] = - digimon.walk_spd[0]
-            else:
-                digimon.walk_spd[1] = - digimon.walk_spd[1]
-        group.remove_element_tmp(digimon)
-        return is_collide
+                self.digimons.remove(digimon)
+                print('remove')
 
 
-    def collide_inner_group(self, digimon):
-        self.group.remove(digimon)
-        is_collide = False
-        if pygame.sprite.spritecollide(digimon, self.group, False):
-            # print(self.group_name, ' collide !!!')
-            is_collide = True
-            # digimon.increase_exp()
-            digimon.restore()
-            choice = random.randint(0, 1)
-            if not choice:
-                digimon.walk_spd[0] = - digimon.walk_spd[0]
-            else:
-                digimon.walk_spd[1] = - digimon.walk_spd[1]
-        self.group.add(digimon)
-        return is_collide
+
 
 

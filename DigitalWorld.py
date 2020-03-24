@@ -25,19 +25,19 @@ def init_digimons(digtal_regions):
     digimon_factory = Digimon.DigimonFactory(digtal_regions)
     birth_pos = {'koromon': {
                     'pos': (150, 150),
-                    'number': 1
+                    'number': 5
                   },
                  'tanemon': {
                      'pos': (450, 150),
-                     'number': 1
+                     'number': 5
                   },
                  'tsunomon': {
                      'pos': (150, 450),
-                     'number': 1
+                     'number': 5
                  },
                  'yokomon': {
                      'pos': (450, 450),
-                     'number': 1
+                     'number': 5
                  },
                 'marineangemon': {
                     'pos': (300, 300),
@@ -72,6 +72,7 @@ def main():
         for digimon_group in digimon_groups:
             digimon_group.group_walk(digimon_groups)
             digimon_group.group_blit(screen)
+            digimon_group.remove_dead()
         pygame.display.flip()
         clock.tick(5)
 
