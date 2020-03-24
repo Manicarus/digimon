@@ -5,10 +5,12 @@ import random
 
 class DigiMon(pygame.sprite.Sprite):
     run_spd_factor = 1.5
-    level1_level2 = 10
+    evolve_exp_required = [10, 30, 60]
 
-    def __init__(self, image_name, location_xy, hp, atk, spd_limit, home):
+    def __init__(self, digimon_name, image_name, location_xy, hp, atk, spd_limit, home):
+        self.digimon_name = digimon_name
         pygame.sprite.Sprite.__init__(self)
+        image_name = 'pic/' + image_name
         self.image = pygame.image.load(image_name)
         self.rect = self.image.get_rect()
         self.rect.left, self.rect.top = location_xy
@@ -19,7 +21,7 @@ class DigiMon(pygame.sprite.Sprite):
         self.hp = hp
         self.atk = atk
         self.exp = 0
-        self.finish_evolve = False
+        self.finish_evolves = [False, False, False]
         print('home is ', home)
         self.home_width_start, self.home_length_start, self.home_width_end, self.home_length_end = home
 
@@ -62,17 +64,23 @@ class DigiMon(pygame.sprite.Sprite):
     def increase_exp(self):
         self.exp += 1
 
-    def evolve(self, kind_name):
-        if (not self.finish_evolve) and self.exp > DigiMon.level1_level2:
-            self.finish_evolve = True
-            print(self.exp)
-            upper_name = DigimonFactory.evolve_map[kind_name]
-            upper_image_name = upper_name + '.png'
-            x_reserved = self.rect.left
-            y_reserved = self.rect.top
-            self.image = pygame.image.load(upper_image_name)
-            self.rect = self.image.get_rect()
-            self.rect.left, self.rect.top = (x_reserved, y_reserved)
+    def evolve(self):
+        for evolve_level in range(len(self.finish_evolves)):
+            if not self.finish_evolves[evolve_level]:
+                if self.exp >= DigiMon.evolve_exp_required[evolve_level]:
+                    self.finish_evolves[evolve_level] = True
+                    print(self.exp)
+                    upper_name = DigimonFactory.evolve_map[self.digimon_name]
+                    upper_image_name = upper_name + '.png'
+                    x_reserved = self.rect.left
+                    y_reserved = self.rect.top
+                    self.digimon_name = upper_name
+                    upper_image_name = 'pic/' + upper_image_name
+                    self.image = pygame.image.load(upper_image_name)
+                    self.rect = self.image.get_rect()
+                    self.rect.left, self.rect.top = (x_reserved, y_reserved)
+                else:
+                    break
 
 
 class DigimonFactory(object):
@@ -80,7 +88,15 @@ class DigimonFactory(object):
         'koromon': 'agumon',
         'tanemon': 'palmon',
         'tsunomon': 'gabumon',
-        'yokomon': 'biyoumon'
+        'yokomon': 'biyoumon',
+        'agumon':'geogreymon',
+        'palmon': 'togomon',
+        'biyoumon': 'birdramon',
+        'gabumon': 'garurumon',
+        'togomon': 'lillymon',
+        'garurumon': 'weregarurumon',
+        'birdramon': 'garudamon',
+        'geogreymon': 'rizegreymon'
     }
 
     def __init__(self, digimap):
@@ -89,8 +105,8 @@ class DigimonFactory(object):
         self.hp = [200, 250, 150, 300]
         self.atk = [30, 20, 40, 10]
         self.spd_limit = [20, 15, 10, 25]
-        self.image_name = [ kind + '.png' for kind in self.kinds]
-        self.home_name = [ kind + ' home' for kind in self.kinds]
+        self.image_name = [kind + '.png' for kind in self.kinds]
+        self.home_name = [kind + ' home' for kind in self.kinds]
         for i in range(len(self.kinds)):
             properties = {'hp': self.hp[i],
                           'atk': self.atk[i],
@@ -110,10 +126,10 @@ class DigimonFactory(object):
         home_ranges = self.digimap.get_region_ranges(digimon_property['home_name'])
         digimon_group = DigimonGroup(digimon_kind)
         for i in range(number):
-            location_x = random.randint(location_center[0] - 50, location_center[0] + 50)
-            location_y = random.randint(location_center[1] - 50, location_center[1] + 50)
+            location_x = random.randint(location_center[0] - 100, location_center[0] + 100)
+            location_y = random.randint(location_center[1] - 100, location_center[1] + 100)
             location_xy = (location_x,  location_y)
-            digimon = DigiMon(image_name, location_xy, hp, atk, spd_limit, home_ranges)
+            digimon = DigiMon(digimon_kind, image_name, location_xy, hp, atk, spd_limit, home_ranges)
             digimon_group.add_digimon(digimon)
         return digimon_group
 
@@ -140,7 +156,7 @@ class DigimonGroup(object):
         for digimon in self.digimons:
             is_collide = self.collide_inner_group(digimon)
             if is_collide:
-                digimon.evolve(self.group_name)
+                digimon.evolve()
             digimon.walk()
 
     def group_blit(self, screen):
@@ -151,7 +167,7 @@ class DigimonGroup(object):
         self.group.remove(digimon)
         is_collide = False
         if pygame.sprite.spritecollide(digimon, self.group, False):
-            print(self.group_name, ' collide !!!')
+            # print(self.group_name, ' collide !!!')
             is_collide = True
             digimon.increase_exp()
             choice = random.randint(0, 1)

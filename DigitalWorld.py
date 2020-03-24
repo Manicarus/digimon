@@ -9,8 +9,8 @@ import Digimon
 
 def config_window():
     pygame.init()
-    screen_x = 400
-    screen_y = 400
+    screen_x = 600
+    screen_y = 600
     screen = pygame.display.set_mode((screen_x, screen_y), 0, 32)
     pygame.display.set_caption('Digital World')
     return screen
@@ -24,20 +24,20 @@ def init_map():
 def init_digimons(digtal_regions):
     digimon_factory = Digimon.DigimonFactory(digtal_regions)
     birth_pos = {'koromon': {
-                    'pos': (100, 100),
-                    'number': 3
+                    'pos': (150, 150),
+                    'number': 5
                   },
                  'tanemon': {
-                     'pos': (300, 100),
-                     'number': 3
+                     'pos': (450, 150),
+                     'number': 5
                   },
                  'tsunomon': {
-                     'pos': (100, 300),
-                     'number': 3
+                     'pos': (150, 450),
+                     'number': 5
                  },
                  'yokomon': {
-                     'pos': (300, 300),
-                     'number': 2
+                     'pos': (450, 450),
+                     'number': 5
                  }
     }
     digimon_groups = []
