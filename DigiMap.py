@@ -1,21 +1,45 @@
 class DigiMap(object):
     def __init__(self):
-        self.map = {}
+        self.map = {
+            'koromon home': {
+                'pos': (0, 0, 100, 100),
+                'color': 'red',
+                'constraint': None
+            },
+            'tanemon home': {
+                'pos': (100, 0, 100, 100),
+                'color': 'blue',
+                'constraint': None
+        },
+            'tsunomon home': {
+                'pos': (0, 100, 100, 100),
+                'color': 'green',
+                'constraint': None
+        },
+            'yokomon home': {
+                'pos': (100, 100, 100, 100),
+                'color': 'yellow',
+                'constraint': None
+        }
+        }
+        self.region_size = len(self.map)
+        self.rect_list = []
+        self.color_list = []
+        for region_name, properties in self.map.items():
+            self.rect_list.append(properties['pos'])
+            self.color_list.append(properties['color'])
+            pos = list(properties['pos'])
+            constraint = (pos[0], pos[1], pos[0] + pos[2], pos[1] + pos[3])
+            self.map[region_name]['constraint'] = constraint
 
-    def add_region(self, region_name, region_ranges):
-        """
-        add a region into digital world
-        :param region_name: region name, str
-        :param region_ranges: a tuple describe a rect (left, top, width, length)
-        :return: None
-        """
-        region_width_start, region_length_start, width, length = region_ranges
-        region_width_end = region_width_start + width
-        region_length_end = region_length_start + length
-        self.map.update({region_name: (region_width_start, region_width_end, region_length_start, region_length_end)})
+    def get_region_colors(self):
+        return self.color_list
 
-    def remove_region(self, region_name):
-        self.map.pop(region_name)
+    def get_rect_tuples(self):
+        return self.rect_list
+
+    def get_region_size(self):
+        return self.region_size
 
     def clear_regions(self):
         self.map.clear()
@@ -26,4 +50,4 @@ class DigiMap(object):
         :param region_name:
         :return:
         """
-        return self.map[region_name]
+        return self.map[region_name]['constraint']

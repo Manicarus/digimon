@@ -17,7 +17,8 @@ class DigiMon(pygame.sprite.Sprite):
         self.run_spd = self.spd_limit * DigiMon.run_spd_factor
         self.hp = hp
         self.atk = atk
-        self.home_width_start, self.home_width_end, self.home_length_start, self.home_length_end = home
+        print('home is ', home)
+        self.home_width_start, self.home_length_start, self.home_width_end, self.home_length_end = home
 
     def walk(self, horizon=True, vertical=True):
         self.image_border = self.image_border.move(self.walk_spd)
@@ -56,25 +57,30 @@ class DigiMon(pygame.sprite.Sprite):
         return self.image_border
 
 
-class KoroMon(DigiMon):
-    hp = 100
-    atk = 30
-    spd_limit = 20
-    image_name = 'koromon.png'
-    home_name = 'koromon home'
+class DigimonFactory(object):
+    def __init__(self, digimap):
+        self.database = {}
+        self.kinds = ['koromon', 'tanemon', 'tsunomon', 'yokomon']
+        self.hp = [200, 250, 150, 300]
+        self.atk = [30, 20, 40, 10]
+        self.spd_limit = [20, 15, 10, 25]
+        self.image_name = [ kind + '.png' for kind in self.kinds]
+        self.home_name = [ kind + ' home' for kind in self.kinds]
+        for i in range(len(self.kinds)):
+            properties = {'hp': self.hp[i],
+                          'atk': self.atk[i],
+                          'spd_limit': self.spd_limit[i],
+                          'image_name': self.image_name[i],
+                          'home_name': self.home_name[i]
+                          }
+            self.database.update({self.kinds[i]: properties})
+        self.digimap = digimap
 
-    def __init__(self, location_xy, digimap):
-        home = digimap.get_region_ranges(KoroMon.home_name)
-        super(KoroMon, self).__init__(KoroMon.image_name, location_xy, KoroMon.hp, KoroMon.atk, KoroMon.spd_limit, home)
-
-
-class TaneMon(DigiMon):
-    hp = 200
-    atk = 20
-    spd_limit = 5
-    image_name = 'tanemon.png'
-    home_name = 'tanemon home'
-
-    def __init__(self, location_xy, digimap):
-        home = digimap.get_region_ranges(KoroMon.home_name)
-        super(TaneMon, self).__init__(TaneMon.image_name, location_xy, TaneMon.hp, TaneMon.atk, TaneMon.spd_limit, home)
+    def birth(self, digimon_kind, location_xy):
+        digimon_property = self.database[digimon_kind]
+        image_name = digimon_property['image_name']
+        hp = digimon_property['hp']
+        atk = digimon_property['atk']
+        spd_limit = digimon_property['spd_limit']
+        home_ranges = self.digimap.get_region_ranges(digimon_property['home_name'])
+        return DigiMon(image_name, location_xy, hp, atk, spd_limit, home_ranges)

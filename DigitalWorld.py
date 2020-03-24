@@ -9,8 +9,8 @@ import Digimon
 
 def config_window():
     pygame.init()
-    screen_x = 800
-    screen_y = 800
+    screen_x = 200
+    screen_y = 200
     screen = pygame.display.set_mode((screen_x, screen_y), 0, 32)
     pygame.display.set_caption('Digital World')
     return screen
@@ -18,23 +18,26 @@ def config_window():
 
 def init_map():
     regions = DigiMap.DigiMap()
-    regions.add_region('koromon home', (0, 0, 100, 100))
-    regions.add_region('tanemon home', (100, 0, 100, 100))
     return regions
 
 
 def init_digimons(digtal_regions):
-    init_pos_koro = (50, 50)
-    init_pos_tane = (150, 30)
-    koromon_one = Digimon.KoroMon(init_pos_koro, digtal_regions)
-    tanemon_one = Digimon.TaneMon(init_pos_tane, digtal_regions)
-    return koromon_one, tanemon_one
+    digimon_factory = Digimon.DigimonFactory(digtal_regions)
+    birth_pos = {'koromon': (50, 50),
+                 'tanemon': (150, 50),
+                 'tsunomon': (50, 150),
+                 'yokomon': (150, 150)
+                 }
+    digimons = []
+    for kind_name, pos in birth_pos.items():
+        digimons.append(digimon_factory.birth(kind_name, pos))
+    return digimons
 
 
 def main():
     screen = config_window()
     digital_regions = init_map()
-    koromon_one, tanemon_one = init_digimons(digital_regions)
+    digimons = init_digimons(digital_regions)
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -42,13 +45,13 @@ def main():
 
         pygame.time.delay(200)
         screen.fill(THECOLORS['white'])
-        # pygame.draw.rect(screen, THECOLORS['red'], digital_regions.get_region_ranges('koromon home'), 0)
-        pygame.draw.rect(screen, THECOLORS['red'], [0, 0, 100, 100], 0)
-        pygame.draw.rect(screen, THECOLORS['green'], [100, 0, 100, 100], 0)
-        koromon_one.walk()
-        tanemon_one.walk()
-        screen.blit(koromon_one.get_image(), koromon_one.get_border())
-        screen.blit(tanemon_one.get_image(), tanemon_one.get_border())
+        region_pos_list = digital_regions.get_rect_tuples()
+        region_color_list = digital_regions.get_region_colors()
+        for i in range(digital_regions.get_region_size()):
+            pygame.draw.rect(screen, THECOLORS[region_color_list[i]], list(region_pos_list[i]), 0)
+        for digimon in digimons:
+            digimon.walk()
+            screen.blit(digimon.get_image(), digimon.get_border())
         pygame.display.flip()
 
 
