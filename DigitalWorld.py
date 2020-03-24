@@ -9,8 +9,8 @@ import Digimon
 
 def config_window():
     pygame.init()
-    screen_x = 200
-    screen_y = 200
+    screen_x = 400
+    screen_y = 400
     screen = pygame.display.set_mode((screen_x, screen_y), 0, 32)
     pygame.display.set_caption('Digital World')
     return screen
@@ -23,21 +23,34 @@ def init_map():
 
 def init_digimons(digtal_regions):
     digimon_factory = Digimon.DigimonFactory(digtal_regions)
-    birth_pos = {'koromon': (50, 50),
-                 'tanemon': (150, 50),
-                 'tsunomon': (50, 150),
-                 'yokomon': (150, 150)
+    birth_pos = {'koromon': {
+                    'pos': (100, 100),
+                    'number': 3
+                  },
+                 'tanemon': {
+                     'pos': (300, 100),
+                     'number': 2
+                  },
+                 'tsunomon': {
+                     'pos': (100, 300),
+                     'number': 2
+                 },
+                 'yokomon': {
+                     'pos': (300, 300),
+                     'number': 2
                  }
-    digimons = []
-    for kind_name, pos in birth_pos.items():
-        digimons.append(digimon_factory.birth(kind_name, pos))
-    return digimons
+    }
+    digimon_groups = []
+    for kind_name, properties in birth_pos.items():
+        digimon_groups.append(digimon_factory.birth(kind_name, properties['pos'], properties['number']))
+
+    return digimon_groups
 
 
 def main():
     screen = config_window()
     digital_regions = init_map()
-    digimons = init_digimons(digital_regions)
+    digimon_groups = init_digimons(digital_regions)
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -49,9 +62,9 @@ def main():
         region_color_list = digital_regions.get_region_colors()
         for i in range(digital_regions.get_region_size()):
             pygame.draw.rect(screen, THECOLORS[region_color_list[i]], list(region_pos_list[i]), 0)
-        for digimon in digimons:
-            digimon.walk()
-            screen.blit(digimon.get_image(), digimon.get_border())
+        for digimon_group in digimon_groups:
+            digimon_group.group_walk()
+            digimon_group.group_blit(screen)
         pygame.display.flip()
 
 

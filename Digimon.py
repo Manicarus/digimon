@@ -76,11 +76,45 @@ class DigimonFactory(object):
             self.database.update({self.kinds[i]: properties})
         self.digimap = digimap
 
-    def birth(self, digimon_kind, location_xy):
+    def birth(self, digimon_kind, location_center, number):
         digimon_property = self.database[digimon_kind]
         image_name = digimon_property['image_name']
         hp = digimon_property['hp']
         atk = digimon_property['atk']
         spd_limit = digimon_property['spd_limit']
         home_ranges = self.digimap.get_region_ranges(digimon_property['home_name'])
-        return DigiMon(image_name, location_xy, hp, atk, spd_limit, home_ranges)
+        digimon_group = DigimonGroup(digimon_kind)
+        for i in range(number):
+            location_x = random.randint(location_center[0] - 50, location_center[0] + 50)
+            location_y = random.randint(location_center[1] - 50, location_center[1] + 50)
+            location_xy = (location_x,  location_y)
+            digimon = DigiMon(image_name, location_xy, hp, atk, spd_limit, home_ranges)
+            digimon_group.add_digimon(digimon)
+        return digimon_group
+
+
+class DigimonGroup(object):
+    def __init__(self, kind_name):
+        self.group_size = 0
+        self.group_name = kind_name
+        self.group = pygame.sprite.Group()
+        self.digimons = []
+
+    def add_digimon(self, digimon):
+        self.digimons.append(digimon)
+        self.group.add(digimon)
+        self.group_size += 1
+
+    def get_group(self):
+        return self.group
+
+    def get_group_name(self):
+        return self.group_name
+
+    def group_walk(self):
+        for digimon in self.digimons:
+            digimon.walk()
+
+    def group_blit(self, screen):
+        for digimon in self.digimons:
+            screen.blit(digimon.get_image(), digimon.get_border())

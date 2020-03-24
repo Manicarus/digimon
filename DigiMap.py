@@ -2,22 +2,22 @@ class DigiMap(object):
     def __init__(self):
         self.map = {
             'koromon home': {
-                'pos': (0, 0, 100, 100),
+                'pos': (0, 0, 200, 200),
                 'color': 'red',
                 'constraint': None
             },
             'tanemon home': {
-                'pos': (100, 0, 100, 100),
+                'pos': (200, 0, 200, 200),
                 'color': 'blue',
                 'constraint': None
         },
             'tsunomon home': {
-                'pos': (0, 100, 100, 100),
+                'pos': (0, 200, 200, 200),
                 'color': 'green',
                 'constraint': None
         },
             'yokomon home': {
-                'pos': (100, 100, 100, 100),
+                'pos': (200, 200, 200, 200),
                 'color': 'yellow',
                 'constraint': None
         }
