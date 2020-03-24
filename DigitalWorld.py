@@ -29,11 +29,11 @@ def init_digimons(digtal_regions):
                   },
                  'tanemon': {
                      'pos': (300, 100),
-                     'number': 2
+                     'number': 3
                   },
                  'tsunomon': {
                      'pos': (100, 300),
-                     'number': 2
+                     'number': 3
                  },
                  'yokomon': {
                      'pos': (300, 300),

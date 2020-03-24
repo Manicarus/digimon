@@ -5,23 +5,26 @@ import random
 
 class DigiMon(pygame.sprite.Sprite):
     run_spd_factor = 1.5
+    level1_level2 = 10
 
     def __init__(self, image_name, location_xy, hp, atk, spd_limit, home):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(image_name)
-        self.image_border = self.image.get_rect()
-        self.image_border.left, self.image_border.top = location_xy
+        self.rect = self.image.get_rect()
+        self.rect.left, self.rect.top = location_xy
         # x and y speed
         self.walk_spd = [0, 0]
         self.spd_limit = spd_limit
         self.run_spd = self.spd_limit * DigiMon.run_spd_factor
         self.hp = hp
         self.atk = atk
+        self.exp = 0
+        self.finish_evolve = False
         print('home is ', home)
         self.home_width_start, self.home_length_start, self.home_width_end, self.home_length_end = home
 
     def walk(self, horizon=True, vertical=True):
-        self.image_border = self.image_border.move(self.walk_spd)
+        self.rect = self.rect.move(self.walk_spd)
         if horizon and vertical:
             choice = random.randint(0, 1)
             if choice:
@@ -36,16 +39,16 @@ class DigiMon(pygame.sprite.Sprite):
 
     def walk_horizon(self):
         step = random.randint(- self.spd_limit, self.spd_limit)
-        if (self.image_border.left + step < self.home_width_start) or \
-                (self.image_border.right + step > self.home_width_end):
+        if (self.rect.left + step < self.home_width_start) or \
+                (self.rect.right + step > self.home_width_end):
             self.walk_spd[0] = - step
         else:
             self.walk_spd[0] = step
 
     def walk_vertical(self):
         step = random.randint(- self.spd_limit, self.spd_limit)
-        if (self.image_border.top + step < self.home_length_start) or \
-                (self.image_border.bottom + step > self.home_length_end):
+        if (self.rect.top + step < self.home_length_start) or \
+                (self.rect.bottom + step > self.home_length_end):
             self.walk_spd[1] = - step
         else:
             self.walk_spd[1] = step
@@ -54,10 +57,32 @@ class DigiMon(pygame.sprite.Sprite):
         return self.image
 
     def get_border(self):
-        return self.image_border
+        return self.rect
+
+    def increase_exp(self):
+        self.exp += 1
+
+    def evolve(self, kind_name):
+        if (not self.finish_evolve) and self.exp > DigiMon.level1_level2:
+            self.finish_evolve = True
+            print(self.exp)
+            upper_name = DigimonFactory.evolve_map[kind_name]
+            upper_image_name = upper_name + '.png'
+            x_reserved = self.rect.left
+            y_reserved = self.rect.top
+            self.image = pygame.image.load(upper_image_name)
+            self.rect = self.image.get_rect()
+            self.rect.left, self.rect.top = (x_reserved, y_reserved)
 
 
 class DigimonFactory(object):
+    evolve_map = {
+        'koromon': 'agumon',
+        'tanemon': 'palmon',
+        'tsunomon': 'gabumon',
+        'yokomon': 'biyoumon'
+    }
+
     def __init__(self, digimap):
         self.database = {}
         self.kinds = ['koromon', 'tanemon', 'tsunomon', 'yokomon']
@@ -113,8 +138,26 @@ class DigimonGroup(object):
 
     def group_walk(self):
         for digimon in self.digimons:
+            is_collide = self.collide_inner_group(digimon)
+            if is_collide:
+                digimon.evolve(self.group_name)
             digimon.walk()
 
     def group_blit(self, screen):
         for digimon in self.digimons:
             screen.blit(digimon.get_image(), digimon.get_border())
+
+    def collide_inner_group(self, digimon):
+        self.group.remove(digimon)
+        is_collide = False
+        if pygame.sprite.spritecollide(digimon, self.group, False):
+            print(self.group_name, ' collide !!!')
+            is_collide = True
+            digimon.increase_exp()
+            choice = random.randint(0, 1)
+            if not choice:
+                digimon.walk_spd[0] = - digimon.walk_spd[0]
+            else:
+                digimon.walk_spd[1] = - digimon.walk_spd[1]
+        self.group.add(digimon)
+        return is_collide
