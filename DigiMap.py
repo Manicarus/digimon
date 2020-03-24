@@ -2,25 +2,30 @@ class DigiMap(object):
     def __init__(self):
         self.map = {
             'koromon home': {
-                'pos': (0, 0, 300, 300),
+                'pos': (0, 0, 600, 600),
                 'color': 'red',
                 'constraint': None
             },
             'tanemon home': {
-                'pos': (300, 0, 300, 300),
+                'pos': (0, 0, 600, 600),
                 'color': 'blue',
                 'constraint': None
         },
             'tsunomon home': {
-                'pos': (0, 300, 300, 300),
+                'pos': (0, 0, 600, 600),
                 'color': 'green',
                 'constraint': None
         },
             'yokomon home': {
-                'pos': (300, 300, 300, 300),
+                'pos': (0, 0, 600, 600),
                 'color': 'yellow',
                 'constraint': None
-        }
+        },
+            'marineangemon home': {
+                'pos': (0, 0, 600, 600),
+                'color': 'white',
+                'constraint': None
+            }
         }
         self.region_size = len(self.map)
         self.rect_list = []
