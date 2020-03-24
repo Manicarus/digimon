@@ -65,7 +65,7 @@ class DigiMon(pygame.sprite.Sprite):
 
     def evolve(self):
         if self.digimon_name == 'marineangemon':
-            return
+            return False
         for evolve_level in range(len(self.finish_evolves)):
             if not self.finish_evolves[evolve_level]:
                 if self.exp >= DigimonFactory.evolve_exp_required[evolve_level]:
@@ -82,8 +82,10 @@ class DigiMon(pygame.sprite.Sprite):
                     self.image = pygame.image.load(upper_image_name)
                     self.rect = self.image.get_rect()
                     self.rect.left, self.rect.top = (x_reserved, y_reserved)
+                    return True
                 else:
-                    break
+                    return False
+        return False
 
     def restore(self):
         restore_hp = 50
@@ -183,7 +185,7 @@ class DigimonGroup(object):
     def get_group_name(self):
         return self.group_name
 
-    def group_walk(self, groups):
+    def group_walk(self, groups, evolve_list):
         for group in groups:
             if group.group_name == self.group_name:
                 for digimon in self.digimons:
@@ -191,9 +193,12 @@ class DigimonGroup(object):
                     digimon.walk()
             else:
                 for digimon in self.digimons:
+                    digimon_name_before = digimon.digimon_name
                     self.check_collide_inter(digimon, group)
                     digimon.walk()
-                    digimon.evolve()
+                    if digimon.evolve():
+                        evolve_str = digimon_name_before + ' -> ' + digimon.digimon_name
+                        evolve_list.append(evolve_str)
 
     def group_blit(self, screen):
         for digimon in self.digimons:
@@ -209,7 +214,6 @@ class DigimonGroup(object):
                 exp_percent = digimon.exp / DigimonFactory.evolve_exp_required[3]
             pygame.draw.rect(screen, (69, 137, 148), (x, y - 10, 32, 3), 1)
             pygame.draw.rect(screen, (229, 131, 8), (x, y - 10, 32 * exp_percent, 3))
-
             screen.blit(digimon.get_image(), digimon.get_border())
 
     def check_collide_inter(self, digimon, group):
@@ -266,11 +270,12 @@ class DigimonGroup(object):
                     return True
         return False
 
-    def remove_dead(self):
+    def remove_dead(self, event_list):
         for digimon in self.digimons:
             if digimon.hp <= 0:
+                event_str = digimon.digimon_name + ' is dead'
+                event_list.append(event_str)
                 self.digimons.remove(digimon)
-                print('remove')
 
 
 
