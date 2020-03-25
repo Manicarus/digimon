@@ -134,13 +134,13 @@ class DigimonFactory(object):
         'weregarurumon': [960, 60],
         'garudamon': [1080, 50],
         'rizegreymon': [800, 80],
-        'marineangemon': [1000, 1]
+        'marineangemon': [10000, 1]
     }
 
     def __init__(self, digimap):
         self.database = {}
         self.kinds = ['koromon', 'tanemon', 'tsunomon', 'yokomon', 'marineangemon']
-        self.hp = [200, 300, 240, 280, 1000]
+        self.hp = [200, 300, 240, 280, 10000]
         self.atk = [1, 1, 1, 1, 1]
         self.spd_limit = [10, 10, 10, 10, 1]
         self.image_name = [kind + '.png' for kind in self.kinds]
