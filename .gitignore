@@ -2,3 +2,6 @@
 venv
 *.pyc
 __pycache__
+pic
+readme_pic
+save_pic
